@@ -5,13 +5,12 @@ import android.app.NotificationManager
 import android.content.Context
 import android.media.AudioAttributes
 import android.media.MediaPlayer
-import android.net.Uri
+import android.os.Build
 import androidx.core.app.NotificationCompat
 
 object SmsWarningNotification {
 
-    private const val CHANNEL_ID =
-        "scamshield_sms_alerts"
+    private const val CHANNEL_ID = "scamshield_sms_alerts"
 
     fun show(
         context: Context,
@@ -20,9 +19,6 @@ object SmsWarningNotification {
         knownSender: Boolean = false,
         suspiciousCount: Int = 0
     ) {
-
-        // Play warning sound
-        playWarningSound(context)
 
         val notificationManager =
             context.getSystemService(
@@ -33,6 +29,9 @@ object SmsWarningNotification {
             context,
             notificationManager
         )
+
+        // Play ScamShield warning sound
+        playWarningSound(context)
 
         val title = when {
 
@@ -91,31 +90,46 @@ object SmsWarningNotification {
 
         try {
 
-            val player =
-                MediaPlayer.create(
-                    context.applicationContext,
-                    R.raw.scam_alert
+            val player = MediaPlayer()
+
+            val soundUri =
+                android.net.Uri.parse(
+                    "android.resource://" +
+                            context.packageName +
+                            "/" +
+                            R.raw.scam_alert_high
                 )
 
-            if (player != null) {
+            player.setAudioAttributes(
+                AudioAttributes.Builder()
+                    .setUsage(
+                        AudioAttributes.USAGE_ALARM
+                    )
+                    .setContentType(
+                        AudioAttributes.CONTENT_TYPE_SONIFICATION
+                    )
+                    .build()
+            )
 
-                player.setAudioAttributes(
-                    AudioAttributes.Builder()
-                        .setUsage(
-                            AudioAttributes.USAGE_NOTIFICATION
-                        )
-                        .setContentType(
-                            AudioAttributes.CONTENT_TYPE_SONIFICATION
-                        )
-                        .build()
-                )
+            player.setDataSource(
+                context.applicationContext,
+                soundUri
+            )
 
-                player.setOnCompletionListener {
-                    it.release()
-                }
-
-                player.start()
+            player.setOnPreparedListener {
+                it.start()
             }
+
+            player.setOnCompletionListener {
+                it.release()
+            }
+
+            player.setOnErrorListener { mp, _, _ ->
+                mp.release()
+                true
+            }
+
+            player.prepareAsync()
 
         } catch (e: Exception) {
 
@@ -128,40 +142,42 @@ object SmsWarningNotification {
         notificationManager: NotificationManager
     ) {
 
-        val soundUri =
-            Uri.parse(
-                "android.resource://" +
-                        "${context.packageName}/" +
-                        "${R.raw.scam_alert}"
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+
+            val audioAttributes =
+                AudioAttributes.Builder()
+                    .setUsage(
+                        AudioAttributes.USAGE_NOTIFICATION
+                    )
+                    .setContentType(
+                        AudioAttributes.CONTENT_TYPE_SONIFICATION
+                    )
+                    .build()
+
+            val channel =
+                NotificationChannel(
+                    CHANNEL_ID,
+                    "ScamShield SMS Alerts",
+                    NotificationManager.IMPORTANCE_HIGH
+                )
+
+            channel.description =
+                "Alerts for suspicious SMS messages"
+
+            /*
+             * Keep the notification channel silent.
+             *
+             * The warning sound is played directly
+             * by MediaPlayer to avoid duplicate sounds.
+             */
+            channel.setSound(
+                null,
+                audioAttributes
             )
 
-        val audioAttributes =
-            AudioAttributes.Builder()
-                .setUsage(
-                    AudioAttributes.USAGE_NOTIFICATION
-                )
-                .setContentType(
-                    AudioAttributes.CONTENT_TYPE_SONIFICATION
-                )
-                .build()
-
-        val channel =
-            NotificationChannel(
-                CHANNEL_ID,
-                "ScamShield SMS Alerts",
-                NotificationManager.IMPORTANCE_HIGH
+            notificationManager.createNotificationChannel(
+                channel
             )
-
-        channel.description =
-            "Alerts for suspicious SMS messages"
-
-        channel.setSound(
-            soundUri,
-            audioAttributes
-        )
-
-        notificationManager.createNotificationChannel(
-            channel
-        )
+        }
     }
 }

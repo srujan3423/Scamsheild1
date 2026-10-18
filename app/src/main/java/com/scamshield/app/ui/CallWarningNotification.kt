@@ -24,43 +24,97 @@ object CallWarningNotification {
 
         createChannel(notificationManager)
 
+
+        // --------------------------------------------------------
+        // TITLE
+        // --------------------------------------------------------
+
         val title =
             if (knownScammer) {
-                "🔴 KNOWN SCAMMER"
+                "🔴 ScamShield: KNOWN SCAMMER"
             } else {
-                "🟠 SUSPICIOUS CALL"
+                "🟠 ScamShield: SUSPICIOUS CALL"
             }
+
+
+        // --------------------------------------------------------
+        // MAIN MESSAGE
+        // --------------------------------------------------------
 
         val message =
             if (knownScammer) {
-                "Number: $phoneNumber • Reports: $suspiciousCount"
+
+                "Caller: $phoneNumber • Previous reports: $suspiciousCount"
+
             } else {
+
                 "Potentially suspicious caller: $phoneNumber"
             }
+
+
+        // --------------------------------------------------------
+        // SAFETY MESSAGE
+        // --------------------------------------------------------
+
+        val safetyMessage =
+            if (knownScammer) {
+
+                "This number has previously been associated " +
+                        "with suspicious activity. Avoid sharing " +
+                        "OTP, UPI PIN, passwords or banking details."
+
+            } else {
+
+                "Be careful with this caller. Never share OTPs, " +
+                        "UPI PINs, passwords or banking information."
+            }
+
+
+        // --------------------------------------------------------
+        // NOTIFICATION
+        // --------------------------------------------------------
 
         val notification =
             NotificationCompat.Builder(
                 context,
                 CHANNEL_ID
             )
+
                 .setSmallIcon(
                     android.R.drawable.ic_dialog_alert
                 )
+
                 .setContentTitle(title)
+
                 .setContentText(message)
+
                 .setStyle(
                     NotificationCompat.BigTextStyle()
                         .bigText(
-                            "$message\n\n" +
-                                    "Do not share OTPs, UPI PINs, " +
-                                    "passwords or banking information."
+                            "$message\n\n$safetyMessage"
                         )
                 )
+
                 .setPriority(
                     NotificationCompat.PRIORITY_HIGH
                 )
+
+                .setCategory(
+                    NotificationCompat.CATEGORY_CALL
+                )
+
                 .setAutoCancel(true)
+
+                .setVisibility(
+                    NotificationCompat.VISIBILITY_PUBLIC
+                )
+
                 .build()
+
+
+        // --------------------------------------------------------
+        // SHOW NOTIFICATION
+        // --------------------------------------------------------
 
         notificationManager.notify(
             System.currentTimeMillis().toInt(),
@@ -68,9 +122,24 @@ object CallWarningNotification {
         )
     }
 
+
+    // ============================================================
+    // NOTIFICATION CHANNEL
+    // ============================================================
+
     private fun createChannel(
         notificationManager: NotificationManager
     ) {
+
+        val existingChannel =
+            notificationManager.getNotificationChannel(
+                CHANNEL_ID
+            )
+
+        if (existingChannel != null) {
+            return
+        }
+
 
         val channel =
             NotificationChannel(
@@ -79,8 +148,10 @@ object CallWarningNotification {
                 NotificationManager.IMPORTANCE_HIGH
             )
 
+
         channel.description =
             "Warnings for suspicious incoming calls"
+
 
         notificationManager.createNotificationChannel(
             channel

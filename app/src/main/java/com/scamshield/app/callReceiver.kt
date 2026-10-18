@@ -12,6 +12,7 @@ class CallReceiver : BroadcastReceiver() {
         intent: Intent
     ) {
 
+        // Only handle phone-state broadcasts.
         if (
             intent.action !=
             TelephonyManager.ACTION_PHONE_STATE_CHANGED
@@ -24,48 +25,71 @@ class CallReceiver : BroadcastReceiver() {
                 TelephonyManager.EXTRA_STATE
             )
 
+        // We only need to process the call when
+        // the phone starts ringing.
+        if (
+            state !=
+            TelephonyManager.EXTRA_STATE_RINGING
+        ) {
+            return
+        }
+
         val incomingNumber =
             intent.getStringExtra(
                 TelephonyManager.EXTRA_INCOMING_NUMBER
             )
 
-        if (
-            state == TelephonyManager.EXTRA_STATE_RINGING &&
-            !incomingNumber.isNullOrBlank()
-        ) {
+        // Some Android versions/carriers may not provide
+        // the incoming number.
+        if (incomingNumber.isNullOrBlank()) {
+            return
+        }
 
-            val storage =
-                ScanStorage(
-                    context.applicationContext
-                )
+        val appContext =
+            context.applicationContext
 
-            val normalizedNumber =
-                storage.normalizePhoneNumber(
-                    incomingNumber
-                )
+        val storage =
+            ScanStorage(appContext)
 
-            val suspiciousCount =
-                storage.getSuspiciousCallerCount(
-                    normalizedNumber
-                )
+        // Normalize the number so that different formats
+        // are treated as the same caller.
+        val normalizedNumber =
+            storage.normalizePhoneNumber(
+                incomingNumber
+            )
 
-            val isKnownScammer =
-                suspiciousCount > 0
+        if (normalizedNumber.isBlank()) {
+            return
+        }
 
-            val isSuspicious =
-                storage.isSuspiciousCaller(
-                    normalizedNumber
-                )
+        // Number of previous suspicious calls/messages
+        // associated with this caller.
+        val suspiciousCount =
+            storage.getSuspiciousCallerCount(
+                normalizedNumber
+            )
 
-            if (isSuspicious) {
+        // Check whether this number has been identified
+        // as suspicious.
+        val isSuspicious =
+            storage.isSuspiciousCaller(
+                normalizedNumber
+            )
 
-                CallWarningNotification.show(
-                    context = context,
-                    phoneNumber = incomingNumber,
-                    knownScammer = isKnownScammer,
-                    suspiciousCount = suspiciousCount
-                )
-            }
+        // A caller with previous suspicious activity
+        // is considered a known scammer.
+        val isKnownScammer =
+            suspiciousCount > 0
+
+        // Show ScamShield warning immediately.
+        if (isSuspicious || isKnownScammer) {
+
+            CallWarningNotification.show(
+                context = appContext,
+                phoneNumber = incomingNumber,
+                knownScammer = isKnownScammer,
+                suspiciousCount = suspiciousCount
+            )
         }
     }
 }

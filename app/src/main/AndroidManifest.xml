@@ -2,33 +2,50 @@
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- SMS detection -->
-    <uses-permission android:name="android.permission.RECEIVE_SMS" />
+    <!-- Firebase / Internet -->
+    <uses-permission android:name="android.permission.INTERNET" />
 
-    <!-- Call detection -->
+    <!-- SMS Detection -->
+    <uses-permission android:name="android.permission.RECEIVE_SMS" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <!-- Call Detection -->
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
 
     <!-- Notifications -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
+    <!-- Location -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
+    <!-- Camera / QR Scanner -->
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <!-- Phone Calls -->
+    <uses-permission android:name="android.permission.CALL_PHONE" />
+
+    <!-- Camera is optional -->
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+
+    <!-- Phone hardware is optional -->
+    <uses-feature
+        android:name="android.hardware.telephony"
+        android:required="false" />
+
     <application
         android:allowBackup="true"
-        android:dataExtractionRules="@xml/data_extraction_rules"
-        android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
-        android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
+        android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/Theme.Scamshield">
 
         <!-- Main Activity -->
         <activity
-            android:name="com.scamshield.app.MainActivity"
-            android:exported="true"
-            android:launchMode="singleTop"
-            android:label="@string/app_name"
-            android:theme="@style/Theme.Scamshield"
-            android:windowSoftInputMode="adjustResize">
+            android:name=".MainActivity"
+            android:exported="true">
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -37,7 +54,7 @@
 
         </activity>
 
-        <!-- Automatic SMS detection -->
+        <!-- SMS Receiver -->
         <receiver
             android:name=".SmsReceiver"
             android:exported="true">
@@ -47,17 +64,30 @@
             </intent-filter>
 
         </receiver>
-
-        <!-- Incoming call detection -->
-        <receiver
-            android:name=".CallReceiver"
+        <!-- Call Screening Service -->
+        <service
+            android:name=".ScamCallScreeningService"
+            android:permission="android.permission.BIND_SCREENING_SERVICE"
             android:exported="true">
 
             <intent-filter>
-                <action android:name="android.intent.action.PHONE_STATE" />
+                <action android:name="android.telecom.CallScreeningService" />
             </intent-filter>
 
-        </receiver>
+        </service>
+
+        <service
+            android:name=".ScamNotificationListenerService"
+            android:label="ScamShield Notification Protection"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
+            android:exported="true">
+
+            <intent-filter>
+                <action
+                    android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+
+        </service>
 
     </application>
 

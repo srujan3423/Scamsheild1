@@ -2,36 +2,37 @@ package com.scamshield.app.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// ===============================
-// SCAMSHIELD COLORS
-// ===============================
+// =====================================================================
+// SCAMSHIELD COLOR TOKENS
+// Blue = actions, green/orange/red = risk level only.
+// =====================================================================
 
-val DarkBackground = Color(0xFF05050D)
+// ---------------- BRAND / ACTION ----------------
+val ElectricBlue = Color(0xFF007AFF)
+val PrimaryTint = Color(0xFFE8F1FF)
 
-val DarkSurface = Color(0xFF10101C)
+// ---------------- RISK LEVELS ----------------
+val SafeGreen = Color(0xFF22A04B)
+val SafeTint = Color(0xFFEAF7EE)
 
-val DarkSurfaceVariant = Color(0xFF171528)
+val WarningOrange = Color(0xFFF08C00)
+val WarningTint = Color(0xFFFFF4E0)
 
-// Primary
-val ElectricBlue = Color(0xFF6C63FF)
+val DangerRed = Color(0xFFE5392E)
+val DangerTint = Color(0xFFFFF1F0)
 
-val SecurityBlue = Color(0xFF4F46E5)
+// ---------------- LIGHT SURFACES ----------------
+val LightBackground = Color(0xFFF2F4F8)
+val LightSurface = Color(0xFFFFFFFF)
+val LightSurfaceVariant = Color(0xFFEEF1F6)
+val LightBorder = Color(0xFFE5E7EB)
 
-val CyberPurple = Color(0xFFA855F7)
+// ---------------- TEXT ----------------
+val DarkText = Color(0xFF111827)
+val SecondaryText = Color(0xFF4B5563)
+val MutedText = Color(0xFF6B7280)
 
-// Security status
-val SafeGreen = Color(0xFF22C55E)
-
-val WarningOrange = Color(0xFFF59E0B)
-
-val DangerRed = Color(0xFFEF4444)
-
-// Text
-val White = Color(0xFFFFFFFF)
-
-val LightText = Color(0xFFE2E8F0)
-
-val MutedText = Color(0xFF9292A6)
-
-// Borders
-val BorderColor = Color(0xFF29263D)
+// ---------------- LEGACY NAMES (kept so older screens still compile) ----------------
+val DarkBackground = Color(0xFF0B0F1A)
+val DarkSurface = Color(0xFF141B2D)
+val LightText = Color(0xFFF9FAFB)
